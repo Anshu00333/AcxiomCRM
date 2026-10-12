@@ -23,7 +23,7 @@ AcxiomCRM/
 
 ---
 
-## 🚀 Key Modules & Capabilities
+##  Key Modules & Capabilities
 
 1. **Authentication & Identity Security**
    - Built on ASP.NET Core Identity (`ApplicationUser` / `ApplicationRole`).
@@ -89,7 +89,7 @@ AcxiomCRM/
 
 ---
 
-## 🔐 Pre-Seeded Test Credentials
+##  Pre-Seeded Test Credentials
 
 On first run, the database automatically initializes with sample data and test accounts:
 
@@ -120,12 +120,12 @@ In PowerShell:
 ```
 
 Once started, open your web browser at:
-👉 **`http://localhost:5000`** or **`https://localhost:5001`**
+**`http://localhost:5000`** or **`https://localhost:5001`**
 
 
 ---
 
-## 🧪 Test Suite & Acceptance Verification
+##  Test Suite & Acceptance Verification
 
 The project includes an **xUnit** test suite (`tests/AcxiomCRM.Tests`) covering all business rules and the 14 criteria of the Acceptance Scenario:
 - Model validation for mandatory fields, valid email patterns, and 10-digit phone requirements.
