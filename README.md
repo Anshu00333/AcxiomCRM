@@ -102,36 +102,26 @@ On first run, the database automatically initializes with sample data and test a
 
 ---
 
-## 🛠 Running the Application Locally
+## 🛠 Running the Application (Step-by-Step)
 
-### Prerequisites
-- [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
+### Option 1: One-Click Execution (Recommended)
+You can directly run or test the application using the pre-configured launcher scripts:
+- **To Run the Web App:** Double-click [`run.bat`](file:///c:/Users/satap/OneDrive/Documents/AXIOM%20CODE%20FILE/run.bat) (or run `./run.bat` in your terminal).
+- **To Run the Test Suite:** Double-click [`test.bat`](file:///c:/Users/satap/OneDrive/Documents/AXIOM%20CODE%20FILE/test.bat) (or run `./test.bat` in your terminal).
 
-### Steps
+### Option 2: Using Terminal / PowerShell Commands
+In PowerShell:
+```powershell
+# 1. Run the Acceptance Tests
+& "$HOME\AppData\Local\Microsoft\dotnet\dotnet.exe" test AcxiomCRM.sln
 
-1. **Clone the repository:**
-   ```bash
-   git clone <repository-url>
-   cd <repository-directory>
-   ```
+# 2. Run the AcxiomCRM Web App
+& "$HOME\AppData\Local\Microsoft\dotnet\dotnet.exe" run --project AcxiomCRM/AcxiomCRM.csproj
+```
 
-2. **Build the solution:**
-   ```bash
-   dotnet build AcxiomCRM.sln
-   ```
+Once started, open your web browser at:
+👉 **`http://localhost:5000`** or **`https://localhost:5001`**
 
-3. **Run the automated test suite:**
-   ```bash
-   dotnet test AcxiomCRM.sln
-   ```
-
-4. **Launch the web application:**
-   ```bash
-   dotnet run --project AcxiomCRM/AcxiomCRM.csproj
-   ```
-
-5. **Open your browser:**
-   Navigate to `https://localhost:5001` or `http://localhost:5000`.
 
 ---
 
