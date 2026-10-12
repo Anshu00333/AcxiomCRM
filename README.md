@@ -4,7 +4,7 @@
 
 ---
 
-## 🏛 Architecture Overview
+## Architecture Overview
 
 AcxiomCRM follows a layered software architecture:
 
@@ -102,7 +102,7 @@ On first run, the database automatically initializes with sample data and test a
 
 ---
 
-## 🛠 Running the Application (Step-by-Step)
+##  Running the Application (Step-by-Step)
 
 ### Option 1: One-Click Execution (Recommended)
 You can directly run or test the application using the pre-configured launcher scripts:
