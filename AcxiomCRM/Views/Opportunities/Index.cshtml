@@ -1,0 +1,190 @@
+@model AcxiomCRM.ViewModels.OpportunityListViewModel
+@{
+    ViewData["Title"] = "Opportunity Management";
+}
+
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <div>
+        <h2 class="fw-bold mb-1 text-dark">Sales Opportunities</h2>
+        <p class="text-secondary small mb-0">Track pipeline stages, forecast revenues, and manage close dates.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-action="Pipeline" class="btn btn-crm-outline">
+            <i class="fa-solid fa-chart-column me-1"></i> Pipeline Board
+        </a>
+        <a asp-action="Create" class="btn btn-crm-primary">
+            <i class="fa-solid fa-plus"></i> New Opportunity
+        </a>
+    </div>
+</div>
+
+<!-- Pipeline Metrics Banner -->
+<div class="row g-3 mb-4">
+    <div class="col-12 col-md-6 col-lg-3">
+        <div class="kpi-card">
+            <div>
+                <div class="kpi-title">Total Active Pipeline</div>
+                <div class="kpi-value text-primary">@Model.TotalPipelineValue.ToString("C0")</div>
+            </div>
+            <div class="kpi-icon primary"><i class="fa-solid fa-sack-dollar"></i></div>
+        </div>
+    </div>
+    <div class="col-12 col-md-6 col-lg-3">
+        <div class="kpi-card">
+            <div>
+                <div class="kpi-title">Weighted Forecast</div>
+                <div class="kpi-value text-success">@Model.WeightedPipelineValue.ToString("C0")</div>
+            </div>
+            <div class="kpi-icon success"><i class="fa-solid fa-scale-balanced"></i></div>
+        </div>
+    </div>
+</div>
+
+<!-- Search & Filtering -->
+<div class="card card-crm mb-4">
+    <div class="card-body-crm py-3">
+        <form method="get" asp-action="Index" class="row g-2 align-items-center">
+            <div class="col-12 col-md-5">
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0 text-muted"><i class="fa-solid fa-magnifying-glass"></i></span>
+                    <input type="text" name="searchTerm" value="@Model.SearchTerm" class="form-control form-control-crm border-start-0" placeholder="Search opportunity name or customer..." />
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <select name="stageFilter" class="form-select form-select-crm">
+                    <option value="">All Stages</option>
+                    <option value="Qualification" selected="@(Model.StageFilter == "Qualification")">Qualification</option>
+                    <option value="Proposal" selected="@(Model.StageFilter == "Proposal")">Proposal</option>
+                    <option value="Negotiation" selected="@(Model.StageFilter == "Negotiation")">Negotiation</option>
+                    <option value="Won" selected="@(Model.StageFilter == "Won")">Won</option>
+                    <option value="Lost" selected="@(Model.StageFilter == "Lost")">Lost</option>
+                </select>
+            </div>
+            <div class="col-6 col-md-2">
+                <select name="statusFilter" class="form-select form-select-crm">
+                    <option value="">All Statuses</option>
+                    <option value="Open" selected="@(Model.StatusFilter == "Open")">Open</option>
+                    <option value="Won" selected="@(Model.StatusFilter == "Won")">Won</option>
+                    <option value="Lost" selected="@(Model.StatusFilter == "Lost")">Lost</option>
+                </select>
+            </div>
+            <div class="col-12 col-md-2">
+                <button type="submit" class="btn btn-crm-outline w-100">
+                    <i class="fa-solid fa-filter me-1"></i> Filter
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Table Card -->
+<div class="card card-crm">
+    <div class="card-header-crm">
+        <span>Opportunities (@Model.TotalCount records)</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-crm mb-0">
+            <thead>
+                <tr>
+                    <th>Opportunity</th>
+                    <th>Customer / Account</th>
+                    <th>Amount ($)</th>
+                    <th>Stage</th>
+                    <th>Win Prob.</th>
+                    <th>Weighted Value</th>
+                    <th>Close Date</th>
+                    <th>Representative</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Opportunities.Any())
+                {
+                    <tr>
+                        <td colspan="9" class="text-center py-5 text-muted">
+                            <i class="fa-regular fa-folder-open fs-2 d-block mb-2 text-secondary"></i>
+                            No opportunities found.
+                        </td>
+                    </tr>
+                }
+                @foreach (var opp in Model.Opportunities)
+                {
+                    <tr>
+                        <td>
+                            <a asp-action="Details" asp-route-id="@opp.OpportunityId" class="fw-bold text-dark text-decoration-none">
+                                @opp.OpportunityName
+                            </a>
+                        </td>
+                        <td>
+                            @if (opp.Customer != null)
+                            {
+                                <a asp-controller="Customers" asp-action="Details" asp-route-id="@opp.Customer.CustomerId" class="text-secondary text-decoration-none small">
+                                    @opp.Customer.CustomerName
+                                </a>
+                            }
+                            else
+                            {
+                                <span class="text-muted small">—</span>
+                            }
+                        </td>
+                        <td class="fw-bold text-dark">@opp.Amount.ToString("C0")</td>
+                        <td><span class="badge-status @opp.Stage.ToLower()">@opp.Stage</span></td>
+                        <td>@opp.Probability%</td>
+                        <td class="text-secondary">@opp.WeightedAmount.ToString("C0")</td>
+                        <td>
+                            <span class="@(opp.Status == "Open" && opp.ExpectedCloseDate.Date < DateTime.UtcNow.Date ? "text-danger fw-bold" : "")">
+                                @opp.ExpectedCloseDate.ToString("MMM dd, yyyy")
+                            </span>
+                        </td>
+                        <td>
+                            <div class="small fw-semibold text-dark">@(opp.AssignedUser?.FullName ?? "Unassigned")</div>
+                        </td>
+                        <td class="text-end">
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-light border-0" type="button" data-bs-toggle="dropdown">
+                                    <i class="fa-solid fa-ellipsis-vertical"></i>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end shadow border-0" style="border-radius: 8px;">
+                                    <li><a class="dropdown-item" asp-action="Details" asp-route-id="@opp.OpportunityId"><i class="fa-solid fa-eye me-2 text-muted"></i> Details</a></li>
+                                    <li><a class="dropdown-item" asp-action="Edit" asp-route-id="@opp.OpportunityId"><i class="fa-solid fa-pen-to-square me-2 text-muted"></i> Edit</a></li>
+                                    <li><a class="dropdown-item" asp-controller="FollowUps" asp-action="Create" asp-route-customerId="@opp.CustomerId"><i class="fa-solid fa-calendar-plus me-2 text-warning"></i> Add Follow-Up</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <form asp-action="Delete" asp-route-id="@opp.OpportunityId" method="post" class="form-delete-confirm" data-item-name="@opp.OpportunityName">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="dropdown-item text-danger">
+                                                <i class="fa-solid fa-trash-can me-2"></i> Delete
+                                            </button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    @if (Model.TotalPages > 1)
+    {
+        <div class="card-footer bg-white border-top d-flex justify-content-between align-items-center py-3">
+            <span class="text-muted small">Page @Model.PageIndex of @Model.TotalPages</span>
+            <ul class="pagination pagination-sm mb-0">
+                <li class="page-item @(Model.PageIndex <= 1 ? "disabled" : "")">
+                    <a class="page-link" asp-action="Index" asp-route-page="@(Model.PageIndex - 1)" asp-route-searchTerm="@Model.SearchTerm" asp-route-stageFilter="@Model.StageFilter" asp-route-statusFilter="@Model.StatusFilter">Previous</a>
+                </li>
+                @for (int p = 1; p <= Model.TotalPages; p++)
+                {
+                    <li class="page-item @(p == Model.PageIndex ? "active" : "")">
+                        <a class="page-link" asp-action="Index" asp-route-page="@p" asp-route-searchTerm="@Model.SearchTerm" asp-route-stageFilter="@Model.StageFilter" asp-route-statusFilter="@Model.StatusFilter">@p</a>
+                    </li>
+                }
+                <li class="page-item @(Model.PageIndex >= Model.TotalPages ? "disabled" : "")">
+                    <a class="page-link" asp-action="Index" asp-route-page="@(Model.PageIndex + 1)" asp-route-searchTerm="@Model.SearchTerm" asp-route-stageFilter="@Model.StageFilter" asp-route-statusFilter="@Model.StatusFilter">Next</a>
+                </li>
+            </ul>
+        </div>
+    }
+</div>

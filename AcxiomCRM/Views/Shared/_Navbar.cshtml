@@ -1,0 +1,64 @@
+@using Microsoft.AspNetCore.Identity
+@using AcxiomCRM.Models
+@inject UserManager<ApplicationUser> UserManager
+
+@{
+    var currentUser = await UserManager.GetUserAsync(User);
+    var currentRole = User.IsInRole("Admin") ? "Admin" : User.IsInRole("Manager") ? "Manager" : "Sales Executive";
+}
+
+<header class="crm-topbar">
+    <div class="d-flex align-items-center gap-3">
+        <button class="btn btn-sm btn-light border-0 d-md-none" id="crmSidebarToggle">
+            <i class="fa-solid fa-bars fs-5"></i>
+        </button>
+        <span class="d-none d-sm-inline-block text-secondary small fw-semibold">
+            Enterprise Sales Management Environment
+        </span>
+    </div>
+
+    <div class="d-flex align-items-center gap-3">
+        <!-- Quick Action Dropdown -->
+        <div class="dropdown">
+            <button class="btn btn-crm-primary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="fa-solid fa-plus me-1"></i> Quick Action
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end shadow border-0" style="border-radius: 10px;">
+                <li><a class="dropdown-item py-2" asp-controller="Leads" asp-action="Create"><i class="fa-solid fa-bullseye text-primary me-2"></i> New Lead</a></li>
+                <li><a class="dropdown-item py-2" asp-controller="Opportunities" asp-action="Create"><i class="fa-solid fa-handshake text-success me-2"></i> New Opportunity</a></li>
+                <li><a class="dropdown-item py-2" asp-controller="Customers" asp-action="Create"><i class="fa-solid fa-users text-info me-2"></i> New Customer</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item py-2" asp-controller="FollowUps" asp-action="Create"><i class="fa-solid fa-calendar-plus text-warning me-2"></i> Schedule Follow-Up</a></li>
+                <li><a class="dropdown-item py-2" asp-controller="Activities" asp-action="Create"><i class="fa-solid fa-phone text-secondary me-2"></i> Log Activity</a></li>
+            </ul>
+        </div>
+
+        <!-- User Profile Dropdown -->
+        <div class="dropdown">
+            <button class="btn btn-link text-decoration-none p-0 d-flex align-items-center gap-2" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <div class="crm-user-avatar" style="width: 38px; height: 38px; background: #2563eb;">
+                    @(currentUser?.FullName.Length > 0 ? currentUser.FullName.Substring(0, 1).ToUpper() : "U")
+                </div>
+                <div class="d-none d-md-block text-start" style="line-height: 1.2;">
+                    <div class="fw-bold text-dark small">@(currentUser?.FullName ?? "User")</div>
+                    <span class="badge bg-light text-secondary border small" style="font-size: 0.65rem;">@currentRole</span>
+                </div>
+                <i class="fa-solid fa-chevron-down text-muted small ms-1"></i>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2" style="border-radius: 10px; min-width: 220px;">
+                <li class="px-3 py-2 border-bottom">
+                    <div class="fw-bold text-dark">@(currentUser?.FullName)</div>
+                    <div class="text-muted small text-truncate">@(currentUser?.Email)</div>
+                </li>
+                <li>
+                    <form asp-controller="Account" asp-action="Logout" method="post" class="p-1">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="dropdown-item py-2 text-danger rounded">
+                            <i class="fa-solid fa-right-from-bracket me-2"></i> Sign Out
+                        </button>
+                    </form>
+                </li>
+            </ul>
+        </div>
+    </div>
+</header>

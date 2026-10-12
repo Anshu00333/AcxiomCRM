@@ -1,0 +1,177 @@
+@model AcxiomCRM.ViewModels.FollowUpListViewModel
+@{
+    ViewData["Title"] = "Follow-Up Management";
+}
+
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <div>
+        <h2 class="fw-bold mb-1 text-dark">Follow-Up Schedule</h2>
+        <p class="text-secondary small mb-0">Never miss a prospect interaction. Manage calls, meetings, emails, and tasks.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-action="Create" class="btn btn-crm-primary">
+            <i class="fa-solid fa-calendar-plus"></i> Schedule Follow-Up
+        </a>
+    </div>
+</div>
+
+<!-- Tabs Filter -->
+<div class="d-flex gap-2 mb-3">
+    <a asp-action="Index" asp-route-filterType="All" class="btn btn-sm @(Model.FilterType == "All" ? "btn-primary" : "btn-outline-secondary")">All</a>
+    <a asp-action="Index" asp-route-filterType="Planned" class="btn btn-sm @(Model.FilterType == "Planned" ? "btn-primary" : "btn-outline-secondary")">Planned</a>
+    <a asp-action="Index" asp-route-filterType="Today" class="btn btn-sm @(Model.FilterType == "Today" ? "btn-primary" : "btn-outline-secondary")">Today</a>
+    <a asp-action="Index" asp-route-filterType="Overdue" class="btn btn-sm @(Model.FilterType == "Overdue" ? "btn-danger" : "btn-outline-danger")">
+        <i class="fa-solid fa-clock-rotate-left me-1"></i> Overdue
+    </a>
+    <a asp-action="Index" asp-route-filterType="Completed" class="btn btn-sm @(Model.FilterType == "Completed" ? "btn-success" : "btn-outline-secondary")">Completed</a>
+</div>
+
+<!-- Search & Filtering -->
+<div class="card card-crm mb-4">
+    <div class="card-body-crm py-3">
+        <form method="get" asp-action="Index" class="row g-2 align-items-center">
+            <input type="hidden" name="filterType" value="@Model.FilterType" />
+            <div class="col-12 col-md-8">
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0 text-muted"><i class="fa-solid fa-magnifying-glass"></i></span>
+                    <input type="text" name="searchTerm" value="@Model.SearchTerm" class="form-control form-control-crm border-start-0" placeholder="Search subject, remarks, contact name..." />
+                </div>
+            </div>
+            <div class="col-12 col-md-4">
+                <button type="submit" class="btn btn-crm-outline w-100">
+                    <i class="fa-solid fa-filter me-1"></i> Search
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Follow-Ups Table -->
+<div class="card card-crm">
+    <div class="card-header-crm">
+        <span>Follow-Up Activities (@Model.TotalCount items)</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-crm mb-0">
+            <thead>
+                <tr>
+                    <th>Type</th>
+                    <th>Subject & Details</th>
+                    <th>Linked Contact / Lead</th>
+                    <th>Scheduled For</th>
+                    <th>Status</th>
+                    <th>Assigned To</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.FollowUps.Any())
+                {
+                    <tr>
+                        <td colspan="7" class="text-center py-5 text-muted">
+                            <i class="fa-regular fa-calendar-xmark fs-2 d-block mb-2 text-secondary"></i>
+                            No follow-up entries match this view.
+                        </td>
+                    </tr>
+                }
+                @foreach (var f in Model.FollowUps)
+                {
+                    bool isOverdue = f.Status == "Planned" && f.FollowUpDate.Date < DateTime.UtcNow.Date;
+                    bool isToday = f.Status == "Planned" && f.FollowUpDate.Date == DateTime.UtcNow.Date;
+
+                    <tr>
+                        <td>
+                            <span class="badge bg-light text-dark border"><i class="fa-solid fa-tag me-1"></i> @f.FollowUpType</span>
+                        </td>
+                        <td>
+                            <div class="fw-bold text-dark">@f.Subject</div>
+                            <div class="small text-secondary text-truncate" style="max-width: 320px;">@(f.Remarks ?? "No remarks.")</div>
+                        </td>
+                        <td>
+                            @if (f.Customer != null)
+                            {
+                                <a asp-controller="Customers" asp-action="Details" asp-route-id="@f.Customer.CustomerId" class="fw-semibold text-primary text-decoration-none small">
+                                    <i class="fa-solid fa-user me-1"></i> @f.Customer.CustomerName
+                                </a>
+                            }
+                            else if (f.Lead != null)
+                            {
+                                <a asp-controller="Leads" asp-action="Details" asp-route-id="@f.Lead.LeadId" class="fw-semibold text-info text-decoration-none small">
+                                    <i class="fa-solid fa-bullseye me-1"></i> @f.Lead.LeadName
+                                </a>
+                            }
+                            else
+                            {
+                                <span class="text-muted small">—</span>
+                            }
+                        </td>
+                        <td>
+                            <div class="fw-semibold @(isOverdue ? "text-danger" : isToday ? "text-success" : "text-dark")">
+                                @f.FollowUpDate.ToString("MMM dd, yyyy HH:mm")
+                            </div>
+                            @if (isOverdue)
+                            {
+                                <span class="badge bg-danger text-white small" style="font-size: 0.65rem;">OVERDUE</span>
+                            }
+                            else if (isToday)
+                            {
+                                <span class="badge bg-success text-white small" style="font-size: 0.65rem;">TODAY</span>
+                            }
+                        </td>
+                        <td>
+                            <span class="badge-status @f.Status.ToLower()">@f.Status</span>
+                        </td>
+                        <td>
+                            <div class="small fw-semibold text-dark">@(f.AssignedUser?.FullName ?? "Unassigned")</div>
+                        </td>
+                        <td class="text-end">
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-light border-0" type="button" data-bs-toggle="dropdown">
+                                    <i class="fa-solid fa-ellipsis-vertical"></i>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end shadow border-0" style="border-radius: 8px;">
+                                    @if (f.Status == "Planned")
+                                    {
+                                        <li><a class="dropdown-item text-success" asp-action="Complete" asp-route-id="@f.FollowUpId"><i class="fa-solid fa-check-circle me-2 text-success"></i> Mark Complete</a></li>
+                                    }
+                                    <li><a class="dropdown-item" asp-action="Edit" asp-route-id="@f.FollowUpId"><i class="fa-solid fa-pen-to-square me-2 text-muted"></i> Reschedule / Edit</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <form asp-action="Delete" asp-route-id="@f.FollowUpId" method="post" class="form-delete-confirm" data-item-name="@f.Subject">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="dropdown-item text-danger">
+                                                <i class="fa-solid fa-trash-can me-2"></i> Delete
+                                            </button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    @if (Model.TotalPages > 1)
+    {
+        <div class="card-footer bg-white border-top d-flex justify-content-between align-items-center py-3">
+            <span class="text-muted small">Page @Model.PageIndex of @Model.TotalPages</span>
+            <ul class="pagination pagination-sm mb-0">
+                <li class="page-item @(Model.PageIndex <= 1 ? "disabled" : "")">
+                    <a class="page-link" asp-action="Index" asp-route-page="@(Model.PageIndex - 1)" asp-route-filterType="@Model.FilterType" asp-route-searchTerm="@Model.SearchTerm">Previous</a>
+                </li>
+                @for (int p = 1; p <= Model.TotalPages; p++)
+                {
+                    <li class="page-item @(p == Model.PageIndex ? "active" : "")">
+                        <a class="page-link" asp-action="Index" asp-route-page="@p" asp-route-filterType="@Model.FilterType" asp-route-searchTerm="@Model.SearchTerm">@p</a>
+                    </li>
+                }
+                <li class="page-item @(Model.PageIndex >= Model.TotalPages ? "disabled" : "")">
+                    <a class="page-link" asp-action="Index" asp-route-page="@(Model.PageIndex + 1)" asp-route-filterType="@Model.FilterType" asp-route-searchTerm="@Model.SearchTerm">Next</a>
+                </li>
+            </ul>
+        </div>
+    }
+</div>

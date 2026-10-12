@@ -1,0 +1,149 @@
+@model AcxiomCRM.ViewModels.CustomerListViewModel
+@{
+    ViewData["Title"] = "Customer Management";
+}
+
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <div>
+        <h2 class="fw-bold mb-1 text-dark">Customer Directory</h2>
+        <p class="text-secondary small mb-0">Manage customer master records, company profiles, and contact details.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-action="Create" class="btn btn-crm-primary">
+            <i class="fa-solid fa-plus"></i> New Customer
+        </a>
+    </div>
+</div>
+
+<!-- Search & Filtering Card -->
+<div class="card card-crm mb-4">
+    <div class="card-body-crm py-3">
+        <form method="get" asp-action="Index" class="row g-2 align-items-center">
+            <div class="col-12 col-md-5">
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0 text-muted"><i class="fa-solid fa-magnifying-glass"></i></span>
+                    <input type="text" name="searchTerm" value="@Model.SearchTerm" class="form-control form-control-crm border-start-0" placeholder="Search by name, email, phone, company..." />
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <select name="statusFilter" class="form-select form-select-crm">
+                    <option value="">All Statuses</option>
+                    <option value="Active" selected="@(Model.StatusFilter == "Active")">Active</option>
+                    <option value="Prospect" selected="@(Model.StatusFilter == "Prospect")">Prospect</option>
+                    <option value="Inactive" selected="@(Model.StatusFilter == "Inactive")">Inactive</option>
+                </select>
+            </div>
+            <div class="col-6 col-md-2">
+                <button type="submit" class="btn btn-crm-outline w-100">
+                    <i class="fa-solid fa-filter me-1"></i> Apply
+                </button>
+            </div>
+            @if (!string.IsNullOrEmpty(Model.SearchTerm) || !string.IsNullOrEmpty(Model.StatusFilter))
+            {
+                <div class="col-12 col-md-2">
+                    <a asp-action="Index" class="btn btn-link text-secondary text-decoration-none small">Clear Filters</a>
+                </div>
+            }
+        </form>
+    </div>
+</div>
+
+<!-- Customers Table Card -->
+<div class="card card-crm">
+    <div class="card-header-crm">
+        <span>Customers (@Model.TotalCount records)</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-crm mb-0">
+            <thead>
+                <tr>
+                    <th>Code</th>
+                    <th>Customer Name</th>
+                    <th>Company</th>
+                    <th>Contact Info</th>
+                    <th>Status</th>
+                    <th>Assigned Executive</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Customers.Any())
+                {
+                    <tr>
+                        <td colspan="7" class="text-center py-5 text-muted">
+                            <i class="fa-regular fa-folder-open fs-2 d-block mb-2 text-secondary"></i>
+                            No customer records found matching the query.
+                        </td>
+                    </tr>
+                }
+                @foreach (var c in Model.Customers)
+                {
+                    <tr>
+                        <td><span class="badge bg-light text-secondary border">@c.CustomerCode</span></td>
+                        <td>
+                            <a asp-action="Details" asp-route-id="@c.CustomerId" class="fw-bold text-decoration-none text-dark">
+                                @c.CustomerName
+                            </a>
+                            <div class="small text-muted">@(c.City != null ? $"{c.City}, {c.State}" : "")</div>
+                        </td>
+                        <td>@(c.CompanyName ?? "—")</td>
+                        <td>
+                            <div><i class="fa-regular fa-envelope me-1 text-muted small"></i> @c.Email</div>
+                            <div class="small text-muted"><i class="fa-solid fa-phone me-1 text-muted small"></i> @c.Phone</div>
+                        </td>
+                        <td>
+                            <span class="badge-status @c.Status.ToLower()">@c.Status</span>
+                        </td>
+                        <td>
+                            <div class="small fw-semibold text-dark">@(c.AssignedUser?.FullName ?? "Unassigned")</div>
+                        </td>
+                        <td class="text-end">
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-light border-0" type="button" data-bs-toggle="dropdown">
+                                    <i class="fa-solid fa-ellipsis-vertical"></i>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end shadow border-0" style="border-radius: 8px;">
+                                    <li><a class="dropdown-item" asp-action="Details" asp-route-id="@c.CustomerId"><i class="fa-solid fa-eye me-2 text-muted"></i> Details</a></li>
+                                    <li><a class="dropdown-item" asp-action="Edit" asp-route-id="@c.CustomerId"><i class="fa-solid fa-pen-to-square me-2 text-muted"></i> Edit</a></li>
+                                    <li><a class="dropdown-item" asp-controller="Opportunities" asp-action="Create" asp-route-customerId="@c.CustomerId"><i class="fa-solid fa-plus me-2 text-success"></i> Add Opportunity</a></li>
+                                    <li><a class="dropdown-item" asp-controller="FollowUps" asp-action="Create" asp-route-customerId="@c.CustomerId"><i class="fa-solid fa-calendar-plus me-2 text-warning"></i> Add Follow-Up</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <form asp-action="Delete" asp-route-id="@c.CustomerId" method="post" class="form-delete-confirm" data-item-name="@c.CustomerName">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="dropdown-item text-danger">
+                                                <i class="fa-solid fa-trash-can me-2"></i> Delete
+                                            </button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    @if (Model.TotalPages > 1)
+    {
+        <div class="card-footer bg-white border-top d-flex justify-content-between align-items-center py-3">
+            <span class="text-muted small">Page @Model.PageIndex of @Model.TotalPages</span>
+            <ul class="pagination pagination-sm mb-0">
+                <li class="page-item @(Model.PageIndex <= 1 ? "disabled" : "")">
+                    <a class="page-link" asp-action="Index" asp-route-page="@(Model.PageIndex - 1)" asp-route-searchTerm="@Model.SearchTerm" asp-route-statusFilter="@Model.StatusFilter">Previous</a>
+                </li>
+                @for (int p = 1; p <= Model.TotalPages; p++)
+                {
+                    <li class="page-item @(p == Model.PageIndex ? "active" : "")">
+                        <a class="page-link" asp-action="Index" asp-route-page="@p" asp-route-searchTerm="@Model.SearchTerm" asp-route-statusFilter="@Model.StatusFilter">@p</a>
+                    </li>
+                }
+                <li class="page-item @(Model.PageIndex >= Model.TotalPages ? "disabled" : "")">
+                    <a class="page-link" asp-action="Index" asp-route-page="@(Model.PageIndex + 1)" asp-route-searchTerm="@Model.SearchTerm" asp-route-statusFilter="@Model.StatusFilter">Next</a>
+                </li>
+            </ul>
+        </div>
+    }
+</div>

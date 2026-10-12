@@ -1,0 +1,136 @@
+@model AcxiomCRM.ViewModels.OpportunityPipelineViewModel
+@{
+    ViewData["Title"] = "Pipeline Board";
+}
+
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <div>
+        <h2 class="fw-bold mb-1 text-dark">Visual Pipeline Board</h2>
+        <p class="text-secondary small mb-0">Active Pipeline: <strong class="text-primary">@Model.TotalPipelineValue.ToString("C0")</strong> &middot; Weighted: <strong class="text-success">@Model.WeightedPipelineValue.ToString("C0")</strong></p>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-action="Index" class="btn btn-crm-outline">
+            <i class="fa-solid fa-list me-1"></i> Table View
+        </a>
+        <a asp-action="Create" class="btn btn-crm-primary">
+            <i class="fa-solid fa-plus"></i> New Opportunity
+        </a>
+    </div>
+</div>
+
+<div class="pipeline-board">
+    <!-- Qualification Column -->
+    <div class="pipeline-column">
+        <div class="pipeline-column-header text-primary">
+            <span>Qualification (@Model.QualificationStage.Count)</span>
+            <span>@Model.QualificationStage.Sum(o => o.Amount).ToString("C0")</span>
+        </div>
+        <div class="pipeline-column-body">
+            @foreach (var opp in Model.QualificationStage)
+            {
+                <div class="pipeline-card">
+                    <div class="fw-bold text-dark mb-1">
+                        <a asp-action="Details" asp-route-id="@opp.OpportunityId" class="text-decoration-none text-dark">@opp.OpportunityName</a>
+                    </div>
+                    <div class="small text-muted mb-2"><i class="fa-solid fa-building me-1"></i> @(opp.Customer?.CustomerName ?? "General")</div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="fw-bold text-primary">@opp.Amount.ToString("C0")</span>
+                        <span class="badge bg-light text-secondary border small">@opp.Probability%</span>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Proposal Column -->
+    <div class="pipeline-column">
+        <div class="pipeline-column-header text-warning">
+            <span>Proposal (@Model.ProposalStage.Count)</span>
+            <span>@Model.ProposalStage.Sum(o => o.Amount).ToString("C0")</span>
+        </div>
+        <div class="pipeline-column-body">
+            @foreach (var opp in Model.ProposalStage)
+            {
+                <div class="pipeline-card">
+                    <div class="fw-bold text-dark mb-1">
+                        <a asp-action="Details" asp-route-id="@opp.OpportunityId" class="text-decoration-none text-dark">@opp.OpportunityName</a>
+                    </div>
+                    <div class="small text-muted mb-2"><i class="fa-solid fa-building me-1"></i> @(opp.Customer?.CustomerName ?? "General")</div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="fw-bold text-primary">@opp.Amount.ToString("C0")</span>
+                        <span class="badge bg-light text-secondary border small">@opp.Probability%</span>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Negotiation Column -->
+    <div class="pipeline-column">
+        <div class="pipeline-column-header text-info">
+            <span>Negotiation (@Model.NegotiationStage.Count)</span>
+            <span>@Model.NegotiationStage.Sum(o => o.Amount).ToString("C0")</span>
+        </div>
+        <div class="pipeline-column-body">
+            @foreach (var opp in Model.NegotiationStage)
+            {
+                <div class="pipeline-card">
+                    <div class="fw-bold text-dark mb-1">
+                        <a asp-action="Details" asp-route-id="@opp.OpportunityId" class="text-decoration-none text-dark">@opp.OpportunityName</a>
+                    </div>
+                    <div class="small text-muted mb-2"><i class="fa-solid fa-building me-1"></i> @(opp.Customer?.CustomerName ?? "General")</div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="fw-bold text-primary">@opp.Amount.ToString("C0")</span>
+                        <span class="badge bg-light text-secondary border small">@opp.Probability%</span>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Won Column -->
+    <div class="pipeline-column">
+        <div class="pipeline-column-header text-success">
+            <span>Won (@Model.WonStage.Count)</span>
+            <span>@Model.WonStage.Sum(o => o.Amount).ToString("C0")</span>
+        </div>
+        <div class="pipeline-column-body">
+            @foreach (var opp in Model.WonStage)
+            {
+                <div class="pipeline-card border-success">
+                    <div class="fw-bold text-dark mb-1">
+                        <a asp-action="Details" asp-route-id="@opp.OpportunityId" class="text-decoration-none text-dark">@opp.OpportunityName</a>
+                    </div>
+                    <div class="small text-muted mb-2"><i class="fa-solid fa-building me-1"></i> @(opp.Customer?.CustomerName ?? "General")</div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="fw-bold text-success">@opp.Amount.ToString("C0")</span>
+                        <span class="badge bg-success text-white small">Won</span>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Lost Column -->
+    <div class="pipeline-column">
+        <div class="pipeline-column-header text-danger">
+            <span>Lost (@Model.LostStage.Count)</span>
+            <span>@Model.LostStage.Sum(o => o.Amount).ToString("C0")</span>
+        </div>
+        <div class="pipeline-column-body">
+            @foreach (var opp in Model.LostStage)
+            {
+                <div class="pipeline-card border-danger">
+                    <div class="fw-bold text-dark mb-1">
+                        <a asp-action="Details" asp-route-id="@opp.OpportunityId" class="text-decoration-none text-dark">@opp.OpportunityName</a>
+                    </div>
+                    <div class="small text-muted mb-2"><i class="fa-solid fa-building me-1"></i> @(opp.Customer?.CustomerName ?? "General")</div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="text-muted">@opp.Amount.ToString("C0")</span>
+                        <span class="badge bg-danger text-white small">Lost</span>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>

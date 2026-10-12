@@ -1,0 +1,109 @@
+@model AcxiomCRM.ViewModels.FollowUpCreateEditViewModel
+@{
+    ViewData["Title"] = "Schedule Follow-Up";
+}
+
+<div class="crm-breadcrumb">
+    <a asp-action="Index">Follow-Ups</a>
+    <i class="fa-solid fa-chevron-right small"></i>
+    <span class="active">Schedule Follow-Up</span>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-12 col-lg-8">
+        <div class="card card-crm">
+            <div class="card-header-crm">
+                <span><i class="fa-solid fa-calendar-plus me-2 text-primary"></i> Schedule New Follow-Up Activity</span>
+            </div>
+            <div class="card-body-crm">
+                <form asp-action="Create" method="post" class="crm-validate-form">
+                    @Html.AntiForgeryToken()
+
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small border-0"></div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label asp-for="FollowUpType" class="form-label-crm">Activity Type <span class="text-danger">*</span></label>
+                            <select asp-for="FollowUpType" class="form-select form-select-crm">
+                                <option value="Call">Phone Call</option>
+                                <option value="Meeting">Meeting / Demo</option>
+                                <option value="Email">Email Communication</option>
+                                <option value="Task">Action Item / Task</option>
+                            </select>
+                            <span asp-validation-for="FollowUpType" class="text-danger-validation"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="FollowUpDate" class="form-label-crm">Date & Time <span class="text-danger">*</span></label>
+                            <input asp-for="FollowUpDate" type="datetime-local" class="form-control form-control-crm" />
+                            <div class="form-text small text-muted">Cannot be set to a past date.</div>
+                            <span asp-validation-for="FollowUpDate" class="text-danger-validation"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Subject" class="form-label-crm">Subject / Purpose <span class="text-danger">*</span></label>
+                        <input asp-for="Subject" class="form-control form-control-crm" placeholder="e.g. Contract review with legal team" />
+                        <span asp-validation-for="Subject" class="text-danger-validation"></span>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label asp-for="CustomerId" class="form-label-crm">Linked Customer Account</label>
+                            <select asp-for="CustomerId" asp-items="Model.Customers" class="form-select form-select-crm">
+                                <option value="">-- None / Select Customer --</option>
+                            </select>
+                            <span asp-validation-for="CustomerId" class="text-danger-validation"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="LeadId" class="form-label-crm">Linked Lead Record</label>
+                            <select asp-for="LeadId" asp-items="Model.Leads" class="form-select form-select-crm">
+                                <option value="">-- None / Select Lead --</option>
+                            </select>
+                            <span asp-validation-for="LeadId" class="text-danger-validation"></span>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label asp-for="Status" class="form-label-crm">Status</label>
+                            <select asp-for="Status" class="form-select form-select-crm">
+                                <option value="Planned">Planned</option>
+                                <option value="Completed">Completed</option>
+                                <option value="Cancelled">Cancelled</option>
+                            </select>
+                            <span asp-validation-for="Status" class="text-danger-validation"></span>
+                        </div>
+
+                        @if (!User.IsInRole("SalesExecutive"))
+                        {
+                            <div class="col-md-6">
+                                <label asp-for="AssignedTo" class="form-label-crm">Assigned Representative</label>
+                                <select asp-for="AssignedTo" asp-items="Model.SalesUsers" class="form-select form-select-crm">
+                                    <option value="">-- Assign User --</option>
+                                </select>
+                                <span asp-validation-for="AssignedTo" class="text-danger-validation"></span>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="Remarks" class="form-label-crm">Agenda / Instructions</label>
+                        <textarea asp-for="Remarks" rows="3" class="form-control form-control-crm" placeholder="Specific notes or talking points for this meeting/call..."></textarea>
+                        <span asp-validation-for="Remarks" class="text-danger-validation"></span>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+                        <a asp-action="Index" class="btn btn-crm-outline">Cancel</a>
+                        <button type="submit" class="btn btn-crm-primary">
+                            <i class="fa-solid fa-check me-1"></i> Schedule Follow-Up
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

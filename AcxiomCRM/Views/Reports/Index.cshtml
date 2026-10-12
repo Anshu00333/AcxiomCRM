@@ -1,0 +1,165 @@
+@model AcxiomCRM.ViewModels.ReportIndexViewModel
+@{
+    ViewData["Title"] = "CRM Analytics & Reports";
+}
+
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <div>
+        <h2 class="fw-bold mb-1 text-dark">Reports & Intelligence</h2>
+        <p class="text-secondary small mb-0">Executive dashboards, pipeline analytics, conversion metrics, and data export.</p>
+    </div>
+</div>
+
+<!-- Quick Metric Highlights -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="kpi-card">
+            <div>
+                <div class="kpi-title">Accounts Active</div>
+                <div class="kpi-value text-primary">@Model.TotalCustomers</div>
+            </div>
+            <div class="kpi-icon primary"><i class="fa-solid fa-users"></i></div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="kpi-card">
+            <div>
+                <div class="kpi-title">Lead Pipeline</div>
+                <div class="kpi-value text-info">@Model.TotalLeads</div>
+            </div>
+            <div class="kpi-icon info"><i class="fa-solid fa-bullseye"></i></div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="kpi-card">
+            <div>
+                <div class="kpi-title">Lead Conversion</div>
+                <div class="kpi-value text-success">@Model.ConversionRatePercent%</div>
+            </div>
+            <div class="kpi-icon success"><i class="fa-solid fa-chart-line"></i></div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="kpi-card">
+            <div>
+                <div class="kpi-title">Active Deals</div>
+                <div class="kpi-value text-warning">@Model.TotalOpportunities</div>
+            </div>
+            <div class="kpi-icon warning"><i class="fa-solid fa-handshake"></i></div>
+        </div>
+    </div>
+</div>
+
+<!-- Report Navigation Cards -->
+<div class="row g-4 mb-4">
+    <!-- Pipeline Report -->
+    <div class="col-12 col-md-6 col-lg-4">
+        <div class="card card-crm h-100">
+            <div class="card-body-crm d-flex flex-column">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <div class="kpi-icon primary" style="width: 44px; height: 44px; font-size: 1.2rem;">
+                        <i class="fa-solid fa-chart-column"></i>
+                    </div>
+                    <div>
+                        <h5 class="fw-bold mb-0 text-dark">Pipeline Forecast</h5>
+                        <div class="text-muted small">Stage-wise & owner-wise breakdown</div>
+                    </div>
+                </div>
+                <p class="text-secondary small flex-grow-1">
+                    Analyze stage breakdown (Qualification, Proposal, Negotiation) and sales representative distribution.
+                </p>
+                <div class="d-flex gap-2 pt-3 border-top">
+                    <a asp-action="Pipeline" class="btn btn-crm-primary btn-sm flex-grow-1">
+                        <i class="fa-solid fa-chart-simple me-1"></i> View Report
+                    </a>
+                    <a asp-action="ExportOpportunityReport" class="btn btn-crm-outline btn-sm" title="Export CSV">
+                        <i class="fa-solid fa-file-csv text-success"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Conversion Report -->
+    <div class="col-12 col-md-6 col-lg-4">
+        <div class="card card-crm h-100">
+            <div class="card-body-crm d-flex flex-column">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <div class="kpi-icon success" style="width: 44px; height: 44px; font-size: 1.2rem;">
+                        <i class="fa-solid fa-arrow-right-arrow-left"></i>
+                    </div>
+                    <div>
+                        <h5 class="fw-bold mb-0 text-dark">Sales & Conversion</h5>
+                        <div class="text-muted small">Lead to deal win rates</div>
+                    </div>
+                </div>
+                <p class="text-secondary small flex-grow-1">
+                    Calculate lead qualification ratios, opportunity close effectiveness, and deal loss distributions.
+                </p>
+                <div class="d-flex gap-2 pt-3 border-top">
+                    <a asp-action="Conversion" class="btn btn-crm-primary btn-sm flex-grow-1">
+                        <i class="fa-solid fa-chart-pie me-1"></i> View Report
+                    </a>
+                    <a asp-action="ExportLeadReport" class="btn btn-crm-outline btn-sm" title="Export CSV">
+                        <i class="fa-solid fa-file-csv text-success"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Activity Report -->
+    @if (User.IsInRole("Admin") || User.IsInRole("Manager"))
+    {
+        <div class="col-12 col-md-6 col-lg-4">
+            <div class="card card-crm h-100">
+                <div class="card-body-crm d-flex flex-column">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="kpi-icon purple" style="width: 44px; height: 44px; font-size: 1.2rem;">
+                            <i class="fa-solid fa-user-clock"></i>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold mb-0 text-dark">User Activity Audit</h5>
+                            <div class="text-muted small">Representative workload & operations</div>
+                        </div>
+                    </div>
+                    <p class="text-secondary small flex-grow-1">
+                        Compare team member performance across assigned records, follow-ups completed, and actions taken.
+                    </p>
+                    <div class="d-flex gap-2 pt-3 border-top">
+                        <a asp-action="UserActivity" class="btn btn-crm-primary btn-sm flex-grow-1">
+                            <i class="fa-solid fa-users-viewfinder me-1"></i> Team Activity
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Raw Data Export Hub -->
+<div class="card card-crm">
+    <div class="card-header-crm">
+        <span><i class="fa-solid fa-cloud-arrow-down me-2 text-primary"></i> Master Data CSV Export Hub</span>
+    </div>
+    <div class="card-body-crm">
+        <p class="text-secondary small mb-3">Download complete datasets in RFC-4180 standard CSV format for external reporting or auditing.</p>
+        <div class="d-flex flex-wrap gap-2">
+            <a asp-action="ExportCustomerReport" class="btn btn-crm-outline btn-sm">
+                <i class="fa-solid fa-file-csv text-success me-1"></i> Customers Dataset (CSV)
+            </a>
+            <a asp-action="ExportLeadReport" class="btn btn-crm-outline btn-sm">
+                <i class="fa-solid fa-file-csv text-success me-1"></i> Leads Dataset (CSV)
+            </a>
+            <a asp-action="ExportOpportunityReport" class="btn btn-crm-outline btn-sm">
+                <i class="fa-solid fa-file-csv text-success me-1"></i> Opportunities Dataset (CSV)
+            </a>
+            @if (User.IsInRole("Admin") || User.IsInRole("Manager"))
+            {
+                <a asp-controller="AuditLog" asp-action="ExportCsv" class="btn btn-crm-outline btn-sm">
+                    <i class="fa-solid fa-file-shield text-danger me-1"></i> Audit Trails Dataset (CSV)
+                </a>
+            }
+        </div>
+    </div>
+</div>

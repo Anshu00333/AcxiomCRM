@@ -1,0 +1,96 @@
+@using Microsoft.AspNetCore.Identity
+@using AcxiomCRM.Models
+@inject UserManager<ApplicationUser> UserManager
+@inject SignInManager<ApplicationUser> SignInManager
+
+@{
+    var currentUser = await UserManager.GetUserAsync(User);
+    var currentRole = User.IsInRole("Admin") ? "Admin" : User.IsInRole("Manager") ? "Manager" : "Sales Executive";
+    var action = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
+    var controller = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+}
+
+<aside class="crm-sidebar" id="crmSidebar">
+    <div class="crm-brand">
+        <div class="brand-icon">
+            <i class="fa-solid fa-layer-group"></i>
+        </div>
+        <div>
+            <div>AcxiomCRM</div>
+        </div>
+        <span class="brand-tag ms-auto">PRO</span>
+    </div>
+
+    <div class="crm-nav">
+        <div class="crm-nav-section-title">Overview</div>
+        <a class="crm-nav-link @(controller == "Dashboard" ? "active" : "")" asp-controller="Dashboard" asp-action="Index">
+            <i class="fa-solid fa-chart-pie"></i>
+            <span>Dashboard</span>
+        </a>
+
+        <div class="crm-nav-section-title">Sales Pipeline</div>
+        <a class="crm-nav-link @(controller == "Leads" ? "active" : "")" asp-controller="Leads" asp-action="Index">
+            <i class="fa-solid fa-bullseye"></i>
+            <span>Leads</span>
+        </a>
+        <a class="crm-nav-link @(controller == "Opportunities" && action != "Pipeline" ? "active" : "")" asp-controller="Opportunities" asp-action="Index">
+            <i class="fa-solid fa-handshake"></i>
+            <span>Opportunities</span>
+        </a>
+        <a class="crm-nav-link @(controller == "Opportunities" && action == "Pipeline" ? "active" : "")" asp-controller="Opportunities" asp-action="Pipeline">
+            <i class="fa-solid fa-chart-column"></i>
+            <span>Pipeline Board</span>
+        </a>
+        <a class="crm-nav-link @(controller == "Customers" ? "active" : "")" asp-controller="Customers" asp-action="Index">
+            <i class="fa-solid fa-users"></i>
+            <span>Customers</span>
+        </a>
+
+        <div class="crm-nav-section-title">Engagement</div>
+        <a class="crm-nav-link @(controller == "FollowUps" ? "active" : "")" asp-controller="FollowUps" asp-action="Index">
+            <i class="fa-solid fa-calendar-check"></i>
+            <span>Follow-Ups</span>
+        </a>
+        <a class="crm-nav-link @(controller == "Activities" ? "active" : "")" asp-controller="Activities" asp-action="Index">
+            <i class="fa-solid fa-clock-rotate-left"></i>
+            <span>Activities</span>
+        </a>
+
+        <div class="crm-nav-section-title">Intelligence</div>
+        <a class="crm-nav-link @(controller == "Reports" ? "active" : "")" asp-controller="Reports" asp-action="Index">
+            <i class="fa-solid fa-file-lines"></i>
+            <span>Reports & Exports</span>
+        </a>
+
+        @if (User.IsInRole("Admin") || User.IsInRole("Manager"))
+        {
+            <div class="crm-nav-section-title">Administration</div>
+            @if (User.IsInRole("Admin"))
+            {
+                <a class="crm-nav-link @(controller == "Users" ? "active" : "")" asp-controller="Users" asp-action="Index">
+                    <i class="fa-solid fa-user-shield"></i>
+                    <span>User & Role Admin</span>
+                </a>
+            }
+            <a class="crm-nav-link @(controller == "AuditLog" ? "active" : "")" asp-controller="AuditLog" asp-action="Index">
+                <i class="fa-solid fa-shield-halved"></i>
+                <span>Audit Trails</span>
+            </a>
+        }
+    </div>
+
+    @if (currentUser != null)
+    {
+        <div class="crm-sidebar-footer">
+            <div class="crm-user-snippet">
+                <div class="crm-user-avatar">
+                    @(currentUser.FullName.Length > 0 ? currentUser.FullName.Substring(0, 1).ToUpper() : "U")
+                </div>
+                <div class="crm-user-meta">
+                    <div class="name" title="@currentUser.FullName">@currentUser.FullName</div>
+                    <div class="role">@currentRole</div>
+                </div>
+            </div>
+        </div>
+    }
+</aside>

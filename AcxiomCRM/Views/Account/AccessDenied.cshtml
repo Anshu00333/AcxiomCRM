@@ -1,0 +1,25 @@
+@{
+    ViewData["Title"] = "Access Restricted";
+    Layout = "_Layout";
+}
+
+<div class="container py-5 text-center">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card card-crm p-5 text-center">
+                <div class="mb-3 text-warning">
+                    <i class="fa-solid fa-shield-halved fs-1"></i>
+                </div>
+                <h3 class="fw-bold text-dark mb-2">Access Denied</h3>
+                <p class="text-secondary mb-4">
+                    Your current account role does not have authorization to view or manipulate this resource.
+                </p>
+                <div class="d-flex justify-content-center gap-3">
+                    <a asp-controller="Dashboard" asp-action="Index" class="btn btn-crm-primary">
+                        <i class="fa-solid fa-house me-1"></i> Return to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

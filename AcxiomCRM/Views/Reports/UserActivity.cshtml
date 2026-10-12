@@ -1,0 +1,55 @@
+@model AcxiomCRM.ViewModels.UserActivityReportViewModel
+@{
+    ViewData["Title"] = "Team Activity Report";
+}
+
+<div class="crm-breadcrumb">
+    <a asp-action="Index">Reports</a>
+    <i class="fa-solid fa-chevron-right small"></i>
+    <span class="active">Team Activity</span>
+</div>
+
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <div>
+        <h2 class="fw-bold mb-1 text-dark">Representative Workload & Activity</h2>
+        <p class="text-secondary small mb-0">Overview of active pipeline assignments and completed customer follow-ups per user.</p>
+    </div>
+</div>
+
+<div class="card card-crm">
+    <div class="card-header-crm">
+        <span>Team Member Performance Breakdown</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-crm mb-0">
+            <thead>
+                <tr>
+                    <th>Representative</th>
+                    <th>Role</th>
+                    <th>Assigned Customers</th>
+                    <th>Assigned Leads</th>
+                    <th>Assigned Deals</th>
+                    <th>Follow-Ups Completed</th>
+                    <th>Audit Operations</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var user in Model.UserActivities)
+                {
+                    <tr>
+                        <td>
+                            <div class="fw-bold text-dark">@user.UserName</div>
+                            <div class="small text-muted">@user.UserEmail</div>
+                        </td>
+                        <td><span class="badge bg-light text-secondary border">@user.Role</span></td>
+                        <td><strong>@user.AssignedCustomers</strong></td>
+                        <td><strong>@user.AssignedLeads</strong></td>
+                        <td><strong>@user.AssignedOpportunities</strong></td>
+                        <td><span class="text-success fw-bold">@user.CompletedFollowUps</span></td>
+                        <td><span class="badge bg-light text-dark border">@user.TotalAuditActions</span></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

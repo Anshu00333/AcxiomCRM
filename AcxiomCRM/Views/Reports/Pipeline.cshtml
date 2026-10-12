@@ -1,0 +1,88 @@
+@model AcxiomCRM.ViewModels.PipelineReportViewModel
+@{
+    ViewData["Title"] = "Pipeline & Forecast Report";
+}
+
+<div class="crm-breadcrumb">
+    <a asp-action="Index">Reports</a>
+    <i class="fa-solid fa-chevron-right small"></i>
+    <span class="active">Pipeline Forecast</span>
+</div>
+
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <div>
+        <h2 class="fw-bold mb-1 text-dark">Sales Pipeline & Forecast Report</h2>
+        <p class="text-secondary small mb-0">Total Open Pipeline: <strong class="text-primary">@Model.GrandTotalPipeline.ToString("C0")</strong> &middot; Weighted Forecast: <strong class="text-success">@Model.GrandTotalWeighted.ToString("C0")</strong></p>
+    </div>
+    <div>
+        <a asp-action="ExportOpportunityReport" class="btn btn-crm-outline">
+            <i class="fa-solid fa-file-csv me-1 text-success"></i> Export Report (CSV)
+        </a>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <!-- Stage Breakdown -->
+    <div class="col-12 col-lg-6">
+        <div class="card card-crm h-100">
+            <div class="card-header-crm">
+                <span>Stage Breakdown</span>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-crm mb-0">
+                    <thead>
+                        <tr>
+                            <th>Stage</th>
+                            <th>Count</th>
+                            <th>Pipeline Value</th>
+                            <th>Weighted Value</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var stage in Model.StageSummaries)
+                        {
+                            <tr>
+                                <td><span class="badge-status @stage.Stage.ToLower()">@stage.Stage</span></td>
+                                <td>@stage.Count</td>
+                                <td class="fw-bold text-dark">@stage.TotalAmount.ToString("C0")</td>
+                                <td class="text-secondary">@stage.WeightedAmount.ToString("C0")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Owner / Representative Breakdown -->
+    <div class="col-12 col-lg-6">
+        <div class="card card-crm h-100">
+            <div class="card-header-crm">
+                <span>Representative Breakdown</span>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-crm mb-0">
+                    <thead>
+                        <tr>
+                            <th>Sales Representative</th>
+                            <th>Open Deals</th>
+                            <th>Pipeline Value</th>
+                            <th>Won Deals Value</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var owner in Model.OwnerSummaries)
+                        {
+                            <tr>
+                                <td class="fw-bold text-dark">@owner.OwnerName</td>
+                                <td>@owner.OpenCount</td>
+                                <td class="fw-bold text-primary">@owner.TotalAmount.ToString("C0")</td>
+                                <td class="fw-bold text-success">@owner.WonAmount.ToString("C0") (@owner.WonCount won)</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

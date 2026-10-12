@@ -1,0 +1,181 @@
+@model List<AcxiomCRM.Models.AuditLog>
+@{
+    ViewData["Title"] = "Security & Business Audit Trails";
+}
+
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <div>
+        <h2 class="fw-bold mb-1 text-dark">Audit Logs</h2>
+        <p class="text-secondary small mb-0">Append-only compliance log of authentication, security events, and business transactions.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-action="ExportCsv" 
+           asp-route-userFilter="@ViewBag.UserFilter" 
+           asp-route-moduleFilter="@ViewBag.ModuleFilter" 
+           asp-route-actionFilter="@ViewBag.ActionFilter" 
+           asp-route-startDate="@ViewBag.StartDate" 
+           asp-route-endDate="@ViewBag.EndDate" 
+           class="btn btn-crm-outline">
+            <i class="fa-solid fa-file-csv me-1 text-success"></i> Export Audit Log (CSV)
+        </a>
+    </div>
+</div>
+
+<!-- Search & Filtering -->
+<div class="card card-crm mb-4">
+    <div class="card-body-crm py-3">
+        <form method="get" asp-action="Index" class="row g-2 align-items-center">
+            <div class="col-12 col-md-3">
+                <input type="text" name="userFilter" value="@ViewBag.UserFilter" class="form-control form-control-crm" placeholder="Filter by user email..." />
+            </div>
+            <div class="col-6 col-md-2">
+                <select name="moduleFilter" class="form-select form-select-crm">
+                    <option value="">All Modules</option>
+                    <option value="Auth" selected="@(ViewBag.ModuleFilter == "Auth")">Auth / Security</option>
+                    <option value="Customer" selected="@(ViewBag.ModuleFilter == "Customer")">Customer</option>
+                    <option value="Lead" selected="@(ViewBag.ModuleFilter == "Lead")">Lead</option>
+                    <option value="Opportunity" selected="@(ViewBag.ModuleFilter == "Opportunity")">Opportunity</option>
+                    <option value="FollowUp" selected="@(ViewBag.ModuleFilter == "FollowUp")">Follow-Up</option>
+                    <option value="Activity" selected="@(ViewBag.ModuleFilter == "Activity")">Activity</option>
+                    <option value="User" selected="@(ViewBag.ModuleFilter == "User")">User</option>
+                </select>
+            </div>
+            <div class="col-6 col-md-2">
+                <select name="actionFilter" class="form-select form-select-crm">
+                    <option value="">All Actions</option>
+                    <option value="Login" selected="@(ViewBag.ActionFilter == "Login")">Login</option>
+                    <option value="Failed Login" selected="@(ViewBag.ActionFilter == "Failed Login")">Failed Login</option>
+                    <option value="Logout" selected="@(ViewBag.ActionFilter == "Logout")">Logout</option>
+                    <option value="Create" selected="@(ViewBag.ActionFilter == "Create")">Create</option>
+                    <option value="Update" selected="@(ViewBag.ActionFilter == "Update")">Update</option>
+                    <option value="Delete" selected="@(ViewBag.ActionFilter == "Delete")">Delete</option>
+                    <option value="Role Change" selected="@(ViewBag.ActionFilter == "Role Change")">Role Change</option>
+                    <option value="Security" selected="@(ViewBag.ActionFilter == "Security")">Security</option>
+                </select>
+            </div>
+            <div class="col-6 col-md-2">
+                <input type="date" name="startDate" value="@ViewBag.StartDate" class="form-control form-control-crm" title="Start Date" />
+            </div>
+            <div class="col-6 col-md-2">
+                <input type="date" name="endDate" value="@ViewBag.EndDate" class="form-control form-control-crm" title="End Date" />
+            </div>
+            <div class="col-12 col-md-1">
+                <button type="submit" class="btn btn-crm-outline w-100" title="Apply Filters">
+                    <i class="fa-solid fa-filter"></i>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Log Entries Table -->
+<div class="card card-crm">
+    <div class="card-header-crm">
+        <span>Recorded Log Entries (@ViewBag.TotalCount records)</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-crm mb-0">
+            <thead>
+                <tr>
+                    <th>Timestamp (UTC)</th>
+                    <th>User</th>
+                    <th>Action</th>
+                    <th>Module</th>
+                    <th>Result</th>
+                    <th>Details & Payload</th>
+                    <th>IP Address</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="7" class="text-center py-5 text-muted">
+                            <i class="fa-solid fa-shield-halved fs-2 d-block mb-2 text-secondary"></i>
+                            No audit log records match the search parameters.
+                        </td>
+                    </tr>
+                }
+                @foreach (var log in Model)
+                {
+                    <tr>
+                        <td class="small text-secondary">@log.CreatedDate.ToString("yyyy-MM-dd HH:mm:ss")</td>
+                        <td>
+                            <div class="fw-semibold text-dark small">@(log.UserEmail ?? "System / Anonymous")</div>
+                        </td>
+                        <td>
+                            @if (log.Action == "Login" || log.Action == "Logout")
+                            {
+                                <span class="badge bg-light text-primary border small">@log.Action</span>
+                            }
+                            else if (log.Action == "Failed Login" || log.Action == "Delete")
+                            {
+                                <span class="badge bg-danger text-white small">@log.Action</span>
+                            }
+                            else if (log.Action == "Create")
+                            {
+                                <span class="badge bg-success text-white small">@log.Action</span>
+                            }
+                            else if (log.Action == "Update" || log.Action == "Role Change")
+                            {
+                                <span class="badge bg-warning text-dark small">@log.Action</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary text-white small">@log.Action</span>
+                            }
+                        </td>
+                        <td><span class="badge bg-light text-dark border">@log.EntityName</span></td>
+                        <td>
+                            @if (log.Result == "Success")
+                            {
+                                <span class="text-success small fw-semibold"><i class="fa-solid fa-circle-check me-1"></i> Success</span>
+                            }
+                            else if (log.Result == "Warning")
+                            {
+                                <span class="text-warning small fw-semibold"><i class="fa-solid fa-triangle-exclamation me-1"></i> Lockout</span>
+                            }
+                            else
+                            {
+                                <span class="text-danger small fw-semibold"><i class="fa-solid fa-circle-xmark me-1"></i> Failed</span>
+                            }
+                        </td>
+                        <td>
+                            <div class="small text-dark">@(log.Details ?? "—")</div>
+                            @if (!string.IsNullOrEmpty(log.RecordId))
+                            {
+                                <div class="small text-muted">Record: @log.RecordId</div>
+                            }
+                        </td>
+                        <td class="small text-muted font-monospace">@(log.IpAddress ?? "::1")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    @if (ViewBag.TotalPages > 1)
+    {
+        <div class="card-footer bg-white border-top d-flex justify-content-between align-items-center py-3">
+            <span class="text-muted small">Page @ViewBag.PageIndex of @ViewBag.TotalPages</span>
+            <ul class="pagination pagination-sm mb-0">
+                <li class="page-item @(ViewBag.PageIndex <= 1 ? "disabled" : "")">
+                    <a class="page-link" asp-action="Index" asp-route-page="@(ViewBag.PageIndex - 1)" 
+                       asp-route-userFilter="@ViewBag.UserFilter" asp-route-moduleFilter="@ViewBag.ModuleFilter" asp-route-actionFilter="@ViewBag.ActionFilter">Previous</a>
+                </li>
+                @for (int p = 1; p <= ViewBag.TotalPages; p++)
+                {
+                    <li class="page-item @(p == ViewBag.PageIndex ? "active" : "")">
+                        <a class="page-link" asp-action="Index" asp-route-page="@p" 
+                           asp-route-userFilter="@ViewBag.UserFilter" asp-route-moduleFilter="@ViewBag.ModuleFilter" asp-route-actionFilter="@ViewBag.ActionFilter">@p</a>
+                    </li>
+                }
+                <li class="page-item @(ViewBag.PageIndex >= ViewBag.TotalPages ? "disabled" : "")">
+                    <a class="page-link" asp-action="Index" asp-route-page="@(ViewBag.PageIndex + 1)" 
+                       asp-route-userFilter="@ViewBag.UserFilter" asp-route-moduleFilter="@ViewBag.ModuleFilter" asp-route-actionFilter="@ViewBag.ActionFilter">Next</a>
+                </li>
+            </ul>
+        </div>
+    }
+</div>
