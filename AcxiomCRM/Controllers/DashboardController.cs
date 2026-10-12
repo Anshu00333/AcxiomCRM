@@ -53,53 +53,51 @@ namespace AcxiomCRM.Controllers
                 activitiesQuery = activitiesQuery.Where(a => a.AssignedTo == userId);
             }
 
-            // Date filtering for time-sensitive stats
             DateTime now = DateTime.UtcNow;
-            DateTime? filterStartDate = dateFilter switch
-            {
-                "Today" => now.Date,
-                "ThisWeek" => now.Date.AddDays(-(int)now.DayOfWeek),
-                "ThisMonth" => new DateTime(now.Year, now.Month, 1),
-                _ => null
-            };
+
+            // In-memory materialization for SQLite cross-platform reliability
+            var allOpportunities = await opportunitiesQuery
+                .Include(o => o.Customer)
+                .ToListAsync();
+
+            var allLeads = await leadsQuery.ToListAsync();
+            var totalCustomersCount = await customersQuery.CountAsync();
+            var allFollowUps = await followUpsQuery
+                .Include(f => f.Customer)
+                .Include(f => f.Lead)
+                .ToListAsync();
+
+            var allActivities = await activitiesQuery
+                .Include(a => a.Customer)
+                .ToListAsync();
 
             var vm = new DashboardViewModel
             {
                 DateFilter = dateFilter,
                 UserRole = User.IsInRole("Admin") ? "Admin" : User.IsInRole("Manager") ? "Manager" : "SalesExecutive",
                 UserDisplayName = user.FullName ?? user.UserName ?? "User",
-                TotalCustomers = await customersQuery.CountAsync(),
-                TotalLeads = await leadsQuery.CountAsync(),
-                OpenLeads = await leadsQuery.CountAsync(l => l.Status != "Lost" && l.Status != "Converted"),
-                TotalOpportunities = await opportunitiesQuery.CountAsync(),
-                OpenOpportunities = await opportunitiesQuery.CountAsync(o => o.Status == "Open"),
-                WonOpportunities = await opportunitiesQuery.CountAsync(o => o.Status == "Won"),
-                LostOpportunities = await opportunitiesQuery.CountAsync(o => o.Status == "Lost"),
-                TotalPipelineValue = await opportunitiesQuery.Where(o => o.Status == "Open").SumAsync(o => (decimal?)o.Amount) ?? 0m,
-                WeightedPipelineValue = await opportunitiesQuery.Where(o => o.Status == "Open").SumAsync(o => (decimal?)(o.Amount * o.Probability / 100m)) ?? 0m,
-                PendingFollowUpsCount = await followUpsQuery.CountAsync(f => f.Status == "Planned" && f.FollowUpDate >= now.Date),
-                OverdueFollowUpsCount = await followUpsQuery.CountAsync(f => f.Status == "Planned" && f.FollowUpDate < now.Date)
+                TotalCustomers = totalCustomersCount,
+                TotalLeads = allLeads.Count,
+                OpenLeads = allLeads.Count(l => l.Status != "Lost" && l.Status != "Converted"),
+                TotalOpportunities = allOpportunities.Count,
+                OpenOpportunities = allOpportunities.Count(o => o.Status == "Open"),
+                WonOpportunities = allOpportunities.Count(o => o.Status == "Won"),
+                LostOpportunities = allOpportunities.Count(o => o.Status == "Lost"),
+                TotalPipelineValue = allOpportunities.Where(o => o.Status == "Open").Sum(o => o.Amount),
+                WeightedPipelineValue = allOpportunities.Where(o => o.Status == "Open").Sum(o => o.WeightedAmount),
+                PendingFollowUpsCount = allFollowUps.Count(f => f.Status == "Planned" && f.FollowUpDate >= now.Date),
+                OverdueFollowUpsCount = allFollowUps.Count(f => f.Status == "Planned" && f.FollowUpDate < now.Date)
             };
 
             // Chart 1: Lead Status Breakdown
             var leadStatuses = new[] { "New", "Contacted", "Qualified", "Converted", "Lost" };
-            var leadStatusData = await leadsQuery
-                .GroupBy(l => l.Status)
-                .Select(g => new { Status = g.Key, Count = g.Count() })
-                .ToListAsync();
-
             vm.LeadStatusLabels = leadStatuses.ToList();
-            vm.LeadStatusCounts = leadStatuses.Select(s => leadStatusData.FirstOrDefault(d => d.Status == s)?.Count ?? 0).ToList();
+            vm.LeadStatusCounts = leadStatuses.Select(s => allLeads.Count(l => string.Equals(l.Status, s, StringComparison.OrdinalIgnoreCase))).ToList();
 
             // Chart 2: Opportunity Pipeline Stage Breakdown
             var pipelineStages = new[] { "Qualification", "Proposal", "Negotiation", "Won", "Lost" };
-            var pipelineData = await opportunitiesQuery
-                .GroupBy(o => o.Stage)
-                .Select(g => new { Stage = g.Key, Total = g.Sum(x => x.Amount) })
-                .ToListAsync();
-
             vm.PipelineStageLabels = pipelineStages.ToList();
-            vm.PipelineStageValues = pipelineStages.Select(s => pipelineData.FirstOrDefault(d => d.Stage == s)?.Total ?? 0m).ToList();
+            vm.PipelineStageValues = pipelineStages.Select(s => allOpportunities.Where(o => string.Equals(o.Stage, s, StringComparison.OrdinalIgnoreCase)).Sum(o => o.Amount)).ToList();
 
             // Chart 3: Monthly Sales / Won deals trend (Last 6 Months)
             var monthlyLabels = new List<string>();
@@ -109,9 +107,9 @@ namespace AcxiomCRM.Controllers
                 var targetMonth = now.AddMonths(-i);
                 var monthStart = new DateTime(targetMonth.Year, targetMonth.Month, 1);
                 var monthEnd = monthStart.AddMonths(1);
-                var monthWonTotal = await opportunitiesQuery
+                var monthWonTotal = allOpportunities
                     .Where(o => o.Status == "Won" && o.CreatedDate >= monthStart && o.CreatedDate < monthEnd)
-                    .SumAsync(o => (decimal?)o.Amount) ?? 0m;
+                    .Sum(o => o.Amount);
 
                 monthlyLabels.Add(targetMonth.ToString("MMM yyyy"));
                 monthlyValues.Add(monthWonTotal);
@@ -120,30 +118,26 @@ namespace AcxiomCRM.Controllers
             vm.MonthlySalesValues = monthlyValues;
 
             // Recent Leads & Opportunities
-            vm.RecentLeads = await leadsQuery
+            vm.RecentLeads = allLeads
                 .OrderByDescending(l => l.CreatedDate)
                 .Take(5)
-                .ToListAsync();
+                .ToList();
 
-            vm.RecentOpportunities = await opportunitiesQuery
-                .Include(o => o.Customer)
+            vm.RecentOpportunities = allOpportunities
                 .OrderByDescending(o => o.CreatedDate)
                 .Take(5)
-                .ToListAsync();
+                .ToList();
 
-            vm.UpcomingFollowUps = await followUpsQuery
-                .Include(f => f.Customer)
-                .Include(f => f.Lead)
+            vm.UpcomingFollowUps = allFollowUps
                 .Where(f => f.Status == "Planned")
                 .OrderBy(f => f.FollowUpDate)
                 .Take(5)
-                .ToListAsync();
+                .ToList();
 
-            vm.RecentActivities = await activitiesQuery
-                .Include(a => a.Customer)
+            vm.RecentActivities = allActivities
                 .OrderByDescending(a => a.ActivityDate)
                 .Take(5)
-                .ToListAsync();
+                .ToList();
 
             return View(vm);
         }

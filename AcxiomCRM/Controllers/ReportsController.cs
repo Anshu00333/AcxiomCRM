@@ -51,12 +51,15 @@ namespace AcxiomCRM.Controllers
             int convertedLeads = await leadsQuery.CountAsync(l => l.Status == "Converted");
             int conversionRate = totalLeads > 0 ? (int)Math.Round((double)convertedLeads * 100 / totalLeads) : 0;
 
+            var openAmounts = await oppsQuery.Where(o => o.Status == "Open").Select(o => o.Amount).ToListAsync();
+            var totalPipeline = openAmounts.Sum();
+
             var vm = new ReportIndexViewModel
             {
                 TotalCustomers = await customersQuery.CountAsync(),
                 TotalLeads = totalLeads,
                 TotalOpportunities = await oppsQuery.CountAsync(),
-                TotalPipelineValue = await oppsQuery.Where(o => o.Status == "Open").SumAsync(o => (decimal?)o.Amount) ?? 0m,
+                TotalPipelineValue = totalPipeline,
                 ConversionRatePercent = conversionRate,
                 PendingFollowUps = await followUpsQuery.CountAsync(f => f.Status == "Planned")
             };

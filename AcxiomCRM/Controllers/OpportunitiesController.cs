@@ -70,8 +70,9 @@ namespace AcxiomCRM.Controllers
                 query = query.Where(o => o.Status == statusFilter);
             }
 
-            var totalPipeline = await query.Where(o => o.Status == "Open").SumAsync(o => (decimal?)o.Amount) ?? 0m;
-            var weightedPipeline = await query.Where(o => o.Status == "Open").SumAsync(o => (decimal?)(o.Amount * o.Probability / 100m)) ?? 0m;
+            var openOppsData = await query.Where(o => o.Status == "Open").Select(o => new { o.Amount, o.Probability }).ToListAsync();
+            var totalPipeline = openOppsData.Sum(o => o.Amount);
+            var weightedPipeline = openOppsData.Sum(o => Math.Round(o.Amount * o.Probability / 100m, 2));
 
             int pageSize = 10;
             int totalCount = await query.CountAsync();
